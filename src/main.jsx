@@ -34,7 +34,18 @@ function App() {
   },[]);
   useEffect(()=>{const c=canvasRef.current;const resize=()=>{const r=wrapRef.current.getBoundingClientRect();const dpr=window.devicePixelRatio||1;c.width=r.width*dpr;c.height=r.height*dpr;c.style.width=r.width+'px';c.style.height=r.height+'px';c.getContext('2d').scale(dpr,dpr);draw(objects);};resize();window.addEventListener('resize',resize);return()=>window.removeEventListener('resize',resize);},[draw,objects]);
   useEffect(()=>{draw(objects);},[objects,draw]);
-  const down=e=>{\n    // Ignore finger, palm and mouse input on the drawing surface. Only an active stylus/pen can draw.\n    if(e.pointerType !== 'pen') return;\n    if(tool==='text'||tool==='note'){const p=point(e);setTextInput({x:p.x,y:p.y,type:tool});return;} if(tool==='select'){setSelected(null);return;}\n    e.preventDefault();\n    e.currentTarget.setPointerCapture?.(e.pointerId);\n    drawing.current=true;const p=point(e);start.current=p;current.current={type:tool==='eraser'?'eraser':tool,color:tool==='eraser'?'#ffffff':color,size:tool==='eraser'?size*5:size,x:p.x,y:p.y,x2:p.x,y2:p.y,points:[p]};};
+  const down=e=>{
+    // Accept only active stylus input; reject finger, palm and mouse contacts.
+    if(e.pointerType !== 'pen') return;
+    if(tool==='text'||tool==='note'){const p=point(e);setTextInput({x:p.x,y:p.y,type:tool});return;}
+    if(tool==='select'){setSelected(null);return;}
+    e.preventDefault();
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    drawing.current=true;
+    const p=point(e);
+    start.current=p;
+    current.current={type:tool==='eraser'?'eraser':tool,color:tool==='eraser'?'#ffffff':color,size:tool==='eraser'?size*5:size,x:p.x,y:p.y,x2:p.x,y2:p.y,points:[p]};
+  };
   const move=e=>{if(!drawing.current)return;const p=point(e);const o={...current.current,x2:p.x,y2:p.y};if(tool==='pen'||tool==='eraser')o.points=[...current.current.points,p];current.current=o;draw(objects,o);};
   const up=e=>{if(!drawing.current)return;drawing.current=false;const o=current.current;if(o) snapshot([...objects,o]);current.current=null;if(e?.currentTarget?.hasPointerCapture?.(e.pointerId))e.currentTarget.releasePointerCapture(e.pointerId);};
   const finishText=()=>{if(!textInput)return;const el=document.getElementById('canvas-text-entry');const value=el?.value?.trim();if(value){const o={type:textInput.type==='note'?'note':'text',x:textInput.x,y:textInput.y,text:value,color,size};snapshot([...objects,o]);}setTextInput(null);};

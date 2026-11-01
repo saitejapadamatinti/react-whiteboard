@@ -32,7 +32,7 @@ function App() {
       if(o.type==='note'){ctx.fillStyle='#fff2b3';ctx.fillRect(o.x,o.y,170,120);ctx.fillStyle='#594b22';ctx.font='16px Inter, sans-serif';(o.text||'Add your note').split('\n').forEach((line,i)=>ctx.fillText(line,o.x+12,o.y+28+i*22));}
     });
   },[]);
-  useEffect(()=>{const c=canvasRef.current;const resize=()=>{const r=wrapRef.current.getBoundingClientRect();const dpr=window.devicePixelRatio||1;c.width=r.width*dpr;c.height=r.height*dpr;c.style.width=r.width+'px';c.style.height=r.height+'px';c.getContext('2d').scale(dpr,dpr);draw(objects);};resize();window.addEventListener('resize',resize);return()=>window.removeEventListener('resize',resize);},[]);
+  useEffect(()=>{const c=canvasRef.current;const resize=()=>{const r=wrapRef.current.getBoundingClientRect();const dpr=window.devicePixelRatio||1;c.width=r.width*dpr;c.height=r.height*dpr;c.style.width=r.width+'px';c.style.height=r.height+'px';c.getContext('2d').scale(dpr,dpr);draw(objects);};resize();window.addEventListener('resize',resize);return()=>window.removeEventListener('resize',resize);},[draw,objects]);
   useEffect(()=>{draw(objects);},[objects,draw]);
   const down=e=>{if(tool==='text'||tool==='note'){const p=point(e);setTextInput({x:p.x,y:p.y,type:tool});return;} if(tool==='select'){setSelected(null);return;} drawing.current=true;const p=point(e);start.current=p;current.current={type:tool==='eraser'?'eraser':tool,color:tool==='eraser'?'#ffffff':color,size:tool==='eraser'?size*5:size,x:p.x,y:p.y,x2:p.x,y2:p.y,points:[p]};};
   const move=e=>{if(!drawing.current)return;const p=point(e);const o={...current.current,x2:p.x,y2:p.y};if(tool==='pen'||tool==='eraser')o.points=[...current.current.points,p];current.current=o;draw(objects,o);};
